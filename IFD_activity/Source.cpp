@@ -14,11 +14,11 @@ using namespace std;
 const int dims = 20;
 const int pop_size = 1000;
 const int Gmax = 1000;
-const int run_time = 100;//100
+const int run_time = 10;//100
 double mutation_rate = 0.1; //0.001
 double mutation_shape = 0.05;//0.1
 const int num_scenes = 10;//10
-const double fcost = 0.1;
+const double fcost = 0.3;
 
 std::mt19937_64 rng;
 
@@ -43,12 +43,15 @@ struct ind {
 void ind::move(const vector<vector<double>> & landscape, vector<vector<int>> & presence) {
 
   double present_intake = landscape[xpos][ypos] / static_cast<double> (presence[xpos][ypos]);
+  double potential_intake;
   int former_xpos = xpos;
   int former_ypos = ypos;
 
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      if (present_intake < landscape[i][j] / static_cast<double> (presence[i][j] + 1)) {
+      potential_intake = landscape[i][j] / (static_cast<double> (presence[i][j]) + 1.0);
+      if (present_intake < potential_intake) {
+        present_intake = potential_intake;
         xpos = i;
         ypos = j;
       }
@@ -104,7 +107,7 @@ label:
 void landscape_setup(vector<vector<double>> & landscape) {
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      landscape[i][i] = uniform_real_distribution<double>(0.0, 1.0)(rng);
+      landscape[i][j] = uniform_real_distribution<double>(0.0, 1.0)(rng);
     }
   }
 }
@@ -182,7 +185,7 @@ int main() {
 
       double time = 0.0;
       int id;
-      int eat_t = 1;
+      int eat_t = 0;
       bool IFD_reached = false;
       double time_to_IFD = 0.0;
 
