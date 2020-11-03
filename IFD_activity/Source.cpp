@@ -6,19 +6,20 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-
+#include <string>
 #include "rndutils.hpp"
 
 using namespace std;
 /// Parameters
 const int dims = 20;
 const int pop_size = 1000;
-const int Gmax = 1000;
+const int Gmax = 100000;
 const int run_time = 10;//100
-double mutation_rate = 0.1; //0.001
-double mutation_shape = 0.05;//0.1
+double mutation_rate = 0.01; //0.001
+double mutation_shape = 0.01;//0.1
 const int num_scenes = 10;//10
-const double fcost = 0.3;
+const double fcost = 0.5;
+const string ID_run = "01_3-11";
 
 std::mt19937_64 rng;
 
@@ -149,11 +150,21 @@ int main() {
   std::clog << "random_seed : " << seed << '\n';
   rng.seed(seed);
 
-  std::ofstream ofs1("activity-evol2.txt", std::ofstream::out);
-  std::ofstream ofs2("IDF2.txt", std::ofstream::out);
-  ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
+  std::ofstream ofs1(ID_run + "activities.txt", std::ofstream::out);
+  //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
+  //ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
 
+  std::ofstream ofs3(ID_run + "params.txt", std::ofstream::out);
+  ofs3 << "dims" << "\t" << dims << "\n"
+    << "pop_size" << "\t" << pop_size << "\n"
+    << "Gmax" << "\t" << Gmax << "\n"
+    << "run_time" << "\t" << run_time << "\n"
+    << "num_scenes" << "\t" << num_scenes << "\n"
+    << "mutation_rate" << "\t" << mutation_rate << "\n"
+    << "mutation_shape" << "\t" << mutation_shape << "\n"
+    << "fcost" << "\t" << fcost << "\n";
 
+  ofs3.close();
 
 
   //landscape initialization
@@ -228,7 +239,7 @@ int main() {
     cout << g << endl;
   }
   ofs1.close();
-  ofs2.close();
+  //ofs2.close();
   cout << "End";
 
   return 0;
