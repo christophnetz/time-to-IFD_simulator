@@ -13,18 +13,19 @@ using namespace std;
 /// Parameters
 const int dims = 20;
 const int pop_size = 1000;
-const int Gmax = 10000;
+const int Gmax = 1000;
 const int run_time = 100;//100
 double mutation_rate = 0.1; //0.001
-double mutation_shape = 0.01;//0.1
+double mutation_shape = 0.05;//0.1
 const int num_scenes = 10;//10
+const double fcost = 0.1;
 
 std::mt19937_64 rng;
 
 struct ind {
 
   ind() {
-    food = 0;
+    food = 0.0;
     act = uniform_real_distribution<double>(0.4, 0.6)(rng);
     xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
     ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
@@ -77,14 +78,14 @@ bool check_IFD(const vector<ind> & pop, const vector < vector<double>> & landsca
   return true;
 }
 
-double count_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
+double count_IFD(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
 
   int count = pop.size();
   int p = 0;
 label:
   for (; p < pop.size(); ++p) {
     double present_intake = landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-    
+
     for (int i = 0; i < dims; ++i) {
       for (int j = 0; j < dims; ++j) {
         if (present_intake < landscape[i][j] / (static_cast<double> (presence[i][j]) + 1.0)) {
@@ -103,7 +104,7 @@ label:
 void landscape_setup(vector<vector<double>> & landscape) {
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      landscape[i][i] = uniform_real_distribution<double>(0.0, 50.0)(rng);
+      landscape[i][i] = uniform_real_distribution<double>(0.0, 1.0)(rng);
     }
   }
 }
@@ -113,7 +114,7 @@ void reproduction(vector<ind> & pop) {
   vector<double> fitness;
 
   for (int i = 0; i < pop.size(); ++i) {
-    fitness.push_back( max(pop[i].food - pop[i].act * run_time, 0.0) );
+    fitness.push_back(max(pop[i].food - fcost * pop[i].act * run_time, 0.0));
   }
 
   rndutils::mutable_discrete_distribution<int, rndutils::all_zero_policy_uni> rdist;
@@ -125,6 +126,8 @@ void reproduction(vector<ind> & pop) {
     tmp_pop[i] = pop[ancestor];
     tmp_pop[i].xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
     tmp_pop[i].ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
+    tmp_pop[i].food = 0.0;
+
     if (bernoulli_distribution(mutation_rate)(rng)) {
       tmp_pop[i].act += normal_distribution<double>(0.0, mutation_shape)(rng);
       tmp_pop[i].act = max(tmp_pop[i].act, 0.0);
@@ -196,13 +199,13 @@ int main() {
 
 
         //if (!IFD_reached) {
-          id = rdist(rng);
-          pop[id].move(landscape, presence);
-          //IFD_reached = check_IFD(pop, landscape, presence);
-          //time_to_IFD = time;
-        //}
+        id = rdist(rng);
+        pop[id].move(landscape, presence);
+        //IFD_reached = check_IFD(pop, landscape, presence);
+        //time_to_IFD = time;
+      //}
 
-        //cout << time << "\t" << IFD_reached << "\t" << endl;
+      //cout << time << "\t" << IFD_reached << "\t" << endl;
       }
       //prop idf fulfilled
       //ifd_prop += count_IFD(pop, landscape, presence);
