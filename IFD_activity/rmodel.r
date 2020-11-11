@@ -65,6 +65,31 @@ polyex <- function (x){(dexp(x, 0.2) * dexp(x, 0.2) *dexp(x, 0.2) )}
 
 curve(dexp(x, 0.2))
 
+#################################################
+#10-11-2020
+
+#Time t until all individuals have moved, discrete time, individuals waiting for one another
+sum(rgeom(25, 0.2)) + sum(rgeom(25, 0.8))
+# Distribution of this
+dens(mapply(function(x1, x2){ sum(rgeom(25, x1)) + sum(rgeom(25, x2))},rep(0.2, 10000), rep(0.8, 10000)), adj = 0.8, xlim = c(0, 200), ylim = c(0, 0.08))
+
+#Time t until all individuals have moved, continuous time, simultaneous movement
+max(c(rexp(25, 0.2), rexp(25, 0.8)))
+#Distribution of this
+dens(mapply(function(x1, x2){ max(c(rexp(25, x1), rexp(25, x2)))},rep(0.2, 10000), rep(0.8, 10000)), adj = 0.8, add = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
