@@ -11,15 +11,18 @@
 
 using namespace std;
 /// Parameters
-const int dims = 30;
-const int pop_size = 20000;
-const int Gmax = 80000;
-const int run_time = 10;//100
-double mutation_rate = 0.01; //0.001
-double mutation_shape = 0.0100;//0.1
-const int num_scenes = 10;//10
-const double fcost = 0.005;
-const string ID_run = "02_6-11";
+const int dims = 20;
+//const int pop_size = 1000;
+//const int Gmax = 80000;
+const int run_time = 100;//100
+//double mutation_rate = 0.01; //0.001
+//double mutation_shape = 0.0100;//0.1
+const int num_scenes = 30;//10
+//const double fcost = 0.005;
+const string ID_run = "twomorphs_betterlandscape";
+
+const vector<int> v_popsize = { 50, 200, 400, 1000, 2000, 4000, 8000 };
+const vector<double> def_act = { 0.05, 0.1, 0.2, 0.3, 0.4, 0.5 };
 
 std::mt19937_64 rng;
 
@@ -32,8 +35,14 @@ struct ind {
     ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
 
   }
+  ind(double a) {
+    food = 0.0;
+    act = a;
+    xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
+    ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
 
-  void move(const vector<vector<double>> & landscape, vector<vector<int>> & presence);
+  }
+  void move(const vector<vector<double>>& landscape, vector<vector<int>>& presence);
 
   double food;
   double act;
@@ -41,7 +50,7 @@ struct ind {
   int ypos;
 };
 
-void ind::move(const vector<vector<double>> & landscape, vector<vector<int>> & presence) {
+void ind::move(const vector<vector<double>>& landscape, vector<vector<int>>& presence) {
 
   double present_intake = landscape[xpos][ypos] / static_cast<double> (presence[xpos][ypos]);
   double potential_intake;
@@ -63,7 +72,7 @@ void ind::move(const vector<vector<double>> & landscape, vector<vector<int>> & p
   presence[former_xpos][former_ypos] -= 1;
 }
 
-bool check_IFD(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
+bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
 
 
   for (int p = 0; p < pop.size(); ++p) {
@@ -82,7 +91,7 @@ bool check_IFD(const vector<ind> & pop, const vector < vector<double>> & landsca
   return true;
 }
 
-double count_IFD(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
+double count_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
 
   int count = pop.size();
   int p = 0;
@@ -105,42 +114,34 @@ label:
   return static_cast<double>(count) / pop.size();
 }
 
-void landscape_setup(vector<vector<double>> & landscape) {
+void landscape_setup(vector<vector<double>>& landscape) {
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      landscape[i][j] = uniform_real_distribution<double>(0.0, 1.0)(rng);
+      landscape[i][j] = uniform_real_distribution<double>(0.5, 1.0)(rng);
     }
   }
 }
 
-void reproduction(vector<ind> & pop) {
+vector<ind> population_setup(double a, int pop_size) {
 
-  vector<double> fitness;
+  vector<ind> pop(pop_size);
 
-  for (int i = 0; i < pop.size(); ++i) {
-    fitness.push_back(max(pop[i].food - fcost * pop[i].act * run_time, 0.0));
-  }
-
-  rndutils::mutable_discrete_distribution<int, rndutils::all_zero_policy_uni> rdist;
-  rdist.mutate(fitness.cbegin(), fitness.cend());
-  auto tmp_pop = pop;
-
-  for (int i = 0; i < pop.size(); ++i) {
-    const int ancestor = rdist(rng);
-    tmp_pop[i] = pop[ancestor];
-    tmp_pop[i].xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
-    tmp_pop[i].ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
-    tmp_pop[i].food = 0.0;
-
-    if (bernoulli_distribution(mutation_rate)(rng)) {
-      tmp_pop[i].act += normal_distribution<double>(0.0, mutation_shape)(rng);
-      tmp_pop[i].act = max(tmp_pop[i].act, 0.0);
+  for (int i = 0; i < pop_size; ++i) {
+    if (i % 2) {
+      pop[i].act = a;
     }
+    else {
+      pop[i].act = 1.0 - a;
+
+    }
+
   }
 
-  //using std::swap;
-  swap(pop, tmp_pop);
+  return pop;
+
 }
+
+
 
 
 int main() {
@@ -150,93 +151,91 @@ int main() {
   std::clog << "random_seed : " << seed << '\n';
   rng.seed(seed);
 
-  std::ofstream ofs1(ID_run + "activities.txt", std::ofstream::out);
+  std::ofstream ofs1(ID_run + "ifd.txt", std::ofstream::out);
+  std::ofstream ofs2(ID_run + "contin_ifd.txt", std::ofstream::out);
+  ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\n";
+  ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\n";
+
   //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
   //ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
 
   std::ofstream ofs3(ID_run + "params.txt", std::ofstream::out);
   ofs3 << "dims" << "\t" << dims << "\n"
-    << "pop_size" << "\t" << pop_size << "\n"
-    << "Gmax" << "\t" << Gmax << "\n"
     << "run_time" << "\t" << run_time << "\n"
-    << "num_scenes" << "\t" << num_scenes << "\n"
-    << "mutation_rate" << "\t" << mutation_rate << "\n"
-    << "mutation_shape" << "\t" << mutation_shape << "\n"
-    << "fcost" << "\t" << fcost << "\n";
+    << "num_scenes" << "\t" << num_scenes << "\n";
 
   ofs3.close();
 
 
   //landscape initialization
   vector<vector<double>> landscape(dims, vector<double>(dims, 1.0));
-  landscape_setup(landscape);
 
-  vector<ind> pop(pop_size);
+  for (int psize = 0; psize < v_popsize.size(); ++psize) {
 
-  for (int g = 0; g < Gmax; ++g) {
+    for (int iact = 0; iact < def_act.size(); ++iact) {
 
-    vector<double> activities;
-    vector<vector<int>> presence(dims, vector<int>(dims, 0));
-    for (int i = 0; i < pop.size(); ++i) {
-      activities.push_back(pop[i].act);
-      presence[pop[i].xpos][pop[i].ypos] += 1;
-    }
+      for (int scenes = 0; scenes < num_scenes; ++scenes) {
 
-    rndutils::mutable_discrete_distribution<int, rndutils::all_zero_policy_uni> rdist;
-    rdist.mutate(activities.cbegin(), activities.cend());
-    double total_act = std::accumulate(activities.begin(), activities.end(), 0.0);
-    exponential_distribution<double> event_dist(total_act);
 
-    double ifd_prop = 0.0;
-    double total_ttIFD = 0.0;
+        vector<ind> pop = population_setup(def_act[iact], v_popsize[psize]);
 
-    for (int scenes = 0; scenes < num_scenes; ++scenes) {
-      //cout << "scenes: " << scenes << endl;
-      landscape_setup(landscape);
-
-      double time = 0.0;
-      int id;
-      int eat_t = 0;
-      bool IFD_reached = false;
-      double time_to_IFD = 0.0;
-
-      for (; time < run_time; ) {
-        //cout << time << "\n";
-        time += event_dist(rng);
-
-        if (time > eat_t) {
-          for (int p = 0; p < pop.size(); ++p) {
-            pop[p].food += landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-          }
-          ++eat_t;
+        vector<double> activities;
+        vector<vector<int>> presence(dims, vector<int>(dims, 0));
+        for (int i = 0; i < pop.size(); ++i) {
+          activities.push_back(pop[i].act);
+          presence[pop[i].xpos][pop[i].ypos] += 1;
         }
 
+        rndutils::mutable_discrete_distribution<int, rndutils::all_zero_policy_uni> rdist;
+        rdist.mutate(activities.cbegin(), activities.cend());
+        double total_act = std::accumulate(activities.begin(), activities.end(), 0.0);
+        exponential_distribution<double> event_dist(total_act);
 
-        //if (!IFD_reached) {
-        id = rdist(rng);
-        pop[id].move(landscape, presence);
-        //IFD_reached = check_IFD(pop, landscape, presence);
-        //time_to_IFD = time;
-      //}
+        double ifd_prop;
 
-      //cout << time << "\t" << IFD_reached << "\t" << endl;
+        //Landscape set up
+        landscape_setup(landscape);
+
+        double time = 0.0;
+        int id;
+        int it_t = 0;
+        bool IFD_reached = false;
+        double time_to_IFD = 1.0;
+
+        for (; time < run_time; ) {
+          //cout << time << "\n";
+          time += event_dist(rng);
+
+
+          if (time > it_t) {
+            ofs2 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes  << "\t" << count_IFD(pop, landscape, presence) << "\n";
+            ++it_t;
+          }
+
+          if (!IFD_reached) {
+            id = rdist(rng);
+            pop[id].move(landscape, presence);
+            IFD_reached = check_IFD(pop, landscape, presence);
+          }
+          else {
+            time_to_IFD = time;
+            break;
+          }
+
+
+
+          //cout << time << "\t" << IFD_reached << "\t" << endl;
+        }
+        //prop idf fulfilled
+        ifd_prop = count_IFD(pop, landscape, presence);
+
+        ofs1 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\n";
+
       }
-      //prop idf fulfilled
-      //ifd_prop += count_IFD(pop, landscape, presence);
-      //total_ttIFD += time_to_IFD;
+      cout << def_act[iact] << "\n";
     }
+    cout << v_popsize[psize] << "\n";
 
-    if (g % 10 == 0) {
-      ofs1 << g << "\t";
-      for (int q = 0; q < pop.size(); q += 10) {
-        ofs1 << pop[q].act << "\t";
-      }
-      ofs1 << "\n";
-      //ofs2 << g << "\t" << ifd_prop / num_scenes << "\t" << total_ttIFD / num_scenes << "\t\n";
-    }
-
-    reproduction(pop);
-    cout << g << endl;
   }
   ofs1.close();
   //ofs2.close();
