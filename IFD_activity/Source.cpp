@@ -19,7 +19,7 @@ const int run_time = 100;//100
 //double mutation_shape = 0.0100;//0.1
 const int num_scenes = 30;//10
 //const double fcost = 0.005;
-const string ID_run = "twomorphs_betterlandscape";
+const string ID_run = "17-11-1";
 
 const vector<int> v_popsize = { 50, 200, 400, 1000, 2000, 4000, 8000 };
 const vector<double> def_act = { 0.05, 0.1, 0.2, 0.3, 0.4, 0.5 };
@@ -126,6 +126,8 @@ vector<ind> population_setup(double a, int pop_size) {
 
   vector<ind> pop(pop_size);
 
+  //uniform_real_distribution<double> a_dist(0.5 - a, 0.5 + a);
+
   for (int i = 0; i < pop_size; ++i) {
     if (i % 2) {
       pop[i].act = a;
@@ -134,6 +136,8 @@ vector<ind> population_setup(double a, int pop_size) {
       pop[i].act = 1.0 - a;
 
     }
+
+    //pop[i].act = a_dist(rng);
 
   }
 
@@ -154,7 +158,7 @@ int main() {
   std::ofstream ofs1(ID_run + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(ID_run + "contin_ifd.txt", std::ofstream::out);
   ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\n";
-  ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\n";
+  ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\n";
 
   //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
   //ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
@@ -198,9 +202,10 @@ int main() {
 
         double time = 0.0;
         int id;
-        int it_t = 0;
+        double it_t = 0.0;
+        double increment = 0.01;
         bool IFD_reached = false;
-        double time_to_IFD = 1.0;
+        double time_to_IFD = run_time;
 
         for (; time < run_time; ) {
           //cout << time << "\n";
@@ -208,8 +213,8 @@ int main() {
 
 
           if (time > it_t) {
-            ofs2 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes  << "\t" << count_IFD(pop, landscape, presence) << "\n";
-            ++it_t;
+            ofs2 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes  << "\t" << it_t <<"\t" << count_IFD(pop, landscape, presence) << "\n";
+            it_t = floor(time / increment) * increment + increment;
           }
 
           if (!IFD_reached) {
@@ -238,7 +243,7 @@ int main() {
 
   }
   ofs1.close();
-  //ofs2.close();
+  ofs2.close();
   cout << "End";
 
   return 0;

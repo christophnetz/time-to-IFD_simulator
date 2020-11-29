@@ -64,5 +64,60 @@ idf_data <- read.table("IDF.txt", header = T)
 plot(idf_data$G, idf_data$avg_ttifd)
 
 
+###########
+library(ggplot2)
+
+df1 <-read.table("twomorphs_betterlandscape2ifd.txt", header=T)
+#View(df1)
 
 
+ggplot(data = df1)+
+  geom_jitter(mapping = aes(x = pop_size, y = time_to_IFD, shape = as.factor(act), color = as.factor(act)))
+
+
+
+p <- ggplot(data = df1[df1$pop_size==50,], aes(x = time_to_IFD, color = as.factor(act), linetype = as.factor(pop_size)))+
+  geom_density()
+
+df1 <- df1[df1$act>0.05,]
+
+p <- ggplot(data = df1[df1$pop_size<2000 & df1$pop_size != 400,], aes(x = time_to_IFD, color = as.factor(act)))+
+  geom_density(key_glyph = draw_key_path) + facet_wrap(~pop_size, scales = "free_y") + 
+  ylab("Density") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
+  scale_color_discrete( name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
+
+
+ggsave("dist_time-to-IFD.png", p)
+
+######
+df2 <-read.table("twomorphs_betterlandscape2contin_ifd.txt", header=T)
+
+View(df1)
+length(df1$act)
+df2 <- df2[df2$act>0.05,]
+
+# p <- ggplot(data = df1[df1$pop_size<2000,], aes(x = time, y = ifd_prop, color = as.factor(act)))+
+#   geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size, scales = "free")+
+#   coord_cartesian(xlim = c(0, 100))+ ylab("Proportion IDF")+ 
+#   scale_color_discrete(name = "activity", labels = paste(as.character(c(0.1, 0.2, 0.3, 0.4, 0.5)), "||", as.character(1-c(0.1, 0.2, 0.3, 0.4, 0.5))))
+# 
+# p <- ggplot(data = df1[df1$pop_size==4000,], aes(x = time, y = ifd_prop, color = as.factor(act)))+
+#   geom_path(aes(group = interaction(iter, act)))+facet_wrap(~act, scales = "free")+
+#   coord_cartesian(xlim = c(0, 0.1), ylim = c(0, 0.4))+ylab("Proportion IDF")+ 
+#   scale_color_discrete(name = "activity", labels = paste(as.character(c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5)), "||", as.character(1-c(0.05, 0.1, 0.2, 0.3, 0.4, 0.5))))
+# 
+
+
+
+p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 400,], aes(x = time, y = ifd_prop, color = as.factor(act)))+
+  geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size, scales = "free")+
+  ylab("Proportion IDF") + xlab("Time")+ theme(legend.position = "bottom") + 
+  scale_color_discrete(name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
+
+
+
+
+Combined_P <- ggarrange(p, p2, ncol = 1, common.legend = T, legend="bottom", labels = c("A", "B"))
+ggsave("twomorphs_betterlandscapeifd_contin.png", p)
+
+ggsave("Combined.png", Combined_P)
