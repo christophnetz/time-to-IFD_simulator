@@ -67,7 +67,7 @@ plot(idf_data$G, idf_data$avg_ttifd)
 ###########
 library(ggplot2)
 
-df1 <-read.table("twomorphs_betterlandscape2ifd.txt", header=T)
+df1 <-read.table("17-11-1ifd.txt", header=T)
 #View(df1)
 
 
@@ -90,7 +90,7 @@ p <- ggplot(data = df1[df1$pop_size<2000 & df1$pop_size != 400,], aes(x = time_t
 ggsave("dist_time-to-IFD.png", p)
 
 ######
-df2 <-read.table("twomorphs_betterlandscape2contin_ifd.txt", header=T)
+df2 <-read.table("3-1_contin_ifd.txt", header=T)
 
 View(df1)
 length(df1$act)
@@ -121,3 +121,16 @@ Combined_P <- ggarrange(p, p2, ncol = 1, common.legend = T, legend="bottom", lab
 ggsave("twomorphs_betterlandscapeifd_contin.png", p)
 
 ggsave("Combined.png", Combined_P)
+
+
+
+## Variance
+
+p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200,], aes(x = time, y = stddev, color = as.factor(act)))+
+  geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size)+
+  ylab("SD intake rates") + xlab("Time")+ theme(legend.position = "bottom") + 
+  scale_color_discrete(name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
+
+
+
+

@@ -19,29 +19,66 @@ const int run_time = 100;//100
 //double mutation_shape = 0.0100;//0.1
 const int num_scenes = 30;//10
 //const double fcost = 0.005;
-const string ID_run = "17-11-1";
+const string ID_run = "3-1_";
 
 const vector<int> v_popsize = { 50, 200, 400, 1000, 2000, 4000, 8000 };
 const vector<double> def_act = { 0.05, 0.1, 0.2, 0.3, 0.4, 0.5 };
 
 std::mt19937_64 rng;
 
+const double a = 0.0007;
+const double h = 50.0;
+const double q1 = 1000.0;
+const double q2 = 20.0;
+const double m1 = 0.27;
+const double m2 = 0.40;
+const double m3 = 0.13 ;
+const double r = 0.0001;
+
+
+double intake(double n, double p, int function) {
+  double intake = 0.0;
+  switch (function) {
+  case 1:
+    intake = a * n / p;
+    break;
+
+  case 2:
+    intake = a * n / (1.0 + a * h * n + q1 * p);
+    break;
+
+  case 3:
+    intake = a * n / (1.0 + a * h * n + q1 * p / (1.0 + a * h * n));
+    break;
+
+  case 4:
+    intake = a* pow((p / r), -m2) * n / (1.0 + a * pow((p / r), -m2) * h * n);
+    break;
+
+  case 5:
+    intake = pow((p / r), -m1) * a * n / (1.0 + a * h * n);
+    break;
+
+  case 6:
+    intake =(1.0 - m3 * log(p / r)) * a * n / (1.0 + a * h * n);
+    break;
+  case 7:
+    intake =(1.0 - q2 * p) * a * n / (1.0 + a * h * n);
+    break;
+
+  }
+
+  return intake;
+}
+
+
 struct ind {
 
-  ind() {
-    food = 0.0;
-    act = uniform_real_distribution<double>(0.15, 0.19)(rng);
-    xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
-    ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
+  ind() {}
+  ind(int x, int y, double a) : xpos(x), ypos(y), act(a), food(0.0) {}
 
-  }
-  ind(double a) {
-    food = 0.0;
-    act = a;
-    xpos = uniform_int_distribution<int>(0, dims - 1)(rng);
-    ypos = uniform_int_distribution<int>(0, dims - 1)(rng);
 
-  }
+
   void move(const vector<vector<double>>& landscape, vector<vector<int>>& presence);
 
   double food;
@@ -50,7 +87,7 @@ struct ind {
   int ypos;
 };
 
-void ind::move(const vector<vector<double>>& landscape, vector<vector<int>>& presence) {
+void ind::move(const vector<vector<double>> & landscape, vector<vector<int>> & presence) {
 
   double present_intake = landscape[xpos][ypos] / static_cast<double> (presence[xpos][ypos]);
   double potential_intake;
@@ -72,7 +109,7 @@ void ind::move(const vector<vector<double>>& landscape, vector<vector<int>>& pre
   presence[former_xpos][former_ypos] -= 1;
 }
 
-bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
+bool check_IFD(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
 
 
   for (int p = 0; p < pop.size(); ++p) {
@@ -91,7 +128,7 @@ bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape
   return true;
 }
 
-double count_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
+double count_IFD(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
 
   int count = pop.size();
   int p = 0;
@@ -114,7 +151,7 @@ label:
   return static_cast<double>(count) / pop.size();
 }
 
-double intake_variance(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
+double intake_variance(const vector<ind> & pop, const vector < vector<double>> & landscape, const vector<vector<int>> & presence) {
   vector<double> intakes;
   int p = 0;
   for (; p < pop.size(); ++p) {
@@ -135,19 +172,24 @@ double intake_variance(const vector<ind>& pop, const vector < vector<double>>& l
 }
 
 
-void landscape_setup(vector<vector<double>>& landscape, const int popsize) {
+void landscape_setup(vector<vector<double>> & landscape) {
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      landscape[i][j] = uniform_real_distribution<double>(0.5 * popsize / 1000.0, 1.0 * popsize / 1000.0)(rng);
+      landscape[i][j] = uniform_real_distribution<double>(0.5, 1.0)(rng);
     }
   }
 }
 
 vector<ind> population_setup(double a, int pop_size) {
 
-  vector<ind> pop(pop_size);
 
   //uniform_real_distribution<double> a_dist(0.5 - a, 0.5 + a);
+
+  vector<ind> pop;
+  auto pdist = std::uniform_int_distribution<int>(0, dims);
+  for (int i = 0; i < pop_size; ++i) {
+    pop.emplace_back(pdist(rng), pdist(rng), 0.5);
+  }
 
   for (int i = 0; i < pop_size; ++i) {
     if (i % 2) {
@@ -157,9 +199,6 @@ vector<ind> population_setup(double a, int pop_size) {
       pop[i].act = 1.0 - a;
 
     }
-
-    //pop[i].act = a_dist(rng);
-
   }
 
   return pop;
@@ -178,8 +217,8 @@ int main() {
 
   std::ofstream ofs1(ID_run + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(ID_run + "contin_ifd.txt", std::ofstream::out);
-  ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tstddev"<< "\n";
-  ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\n";
+  ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tstddev" << "\n";
+  ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\tstddev" << "\n";
 
   //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
   //ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
@@ -220,7 +259,7 @@ int main() {
         double stdev;
 
         //Landscape set up
-        landscape_setup(landscape, v_popsize[psize]);
+        landscape_setup(landscape);
 
         double time = 0.0;
         int id;
@@ -235,7 +274,8 @@ int main() {
 
 
           if (time > it_t) {
-            ofs2 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes  << "\t" << it_t <<"\t" << count_IFD(pop, landscape, presence) << "\n";
+            ofs2 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << it_t << "\t" << count_IFD(pop, landscape, presence)
+              << "\t" << intake_variance(pop, landscape, presence) << "\n";
             it_t = floor(time / increment) * increment + increment;
           }
 
@@ -246,7 +286,6 @@ int main() {
           }
           else {
             time_to_IFD = time;
-            break;
           }
 
 
@@ -256,7 +295,7 @@ int main() {
         //prop idf fulfilled
         ifd_prop = count_IFD(pop, landscape, presence);
         stdev = intake_variance(pop, landscape, presence);
-        
+
 
         ofs1 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
 
