@@ -114,10 +114,31 @@ label:
   return static_cast<double>(count) / pop.size();
 }
 
-void landscape_setup(vector<vector<double>>& landscape) {
+double intake_variance(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence) {
+  vector<double> intakes;
+  int p = 0;
+  for (; p < pop.size(); ++p) {
+    intakes.push_back(landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
+  }
+
+  double sum = std::accumulate(intakes.begin(), intakes.end(), 0.0);
+  double m = sum / intakes.size();
+
+  double accum = 0.0;
+  std::for_each(intakes.begin(), intakes.end(), [&](const double d) {
+    accum += (d - m) * (d - m);
+    });
+
+  double stdev = sqrt(accum / (intakes.size()));
+
+  return stdev;
+}
+
+
+void landscape_setup(vector<vector<double>>& landscape, const int popsize) {
   for (int i = 0; i < dims; ++i) {
     for (int j = 0; j < dims; ++j) {
-      landscape[i][j] = uniform_real_distribution<double>(0.5, 1.0)(rng);
+      landscape[i][j] = uniform_real_distribution<double>(0.5 * popsize / 1000.0, 1.0 * popsize / 1000.0)(rng);
     }
   }
 }
@@ -157,7 +178,7 @@ int main() {
 
   std::ofstream ofs1(ID_run + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(ID_run + "contin_ifd.txt", std::ofstream::out);
-  ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\n";
+  ofs1 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tstddev"<< "\n";
   ofs2 << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\n";
 
   //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
@@ -196,9 +217,10 @@ int main() {
         exponential_distribution<double> event_dist(total_act);
 
         double ifd_prop;
+        double stdev;
 
         //Landscape set up
-        landscape_setup(landscape);
+        landscape_setup(landscape, v_popsize[psize]);
 
         double time = 0.0;
         int id;
@@ -233,8 +255,10 @@ int main() {
         }
         //prop idf fulfilled
         ifd_prop = count_IFD(pop, landscape, presence);
+        stdev = intake_variance(pop, landscape, presence);
+        
 
-        ofs1 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\n";
+        ofs1 << def_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
 
       }
       cout << def_act[iact] << "\n";
