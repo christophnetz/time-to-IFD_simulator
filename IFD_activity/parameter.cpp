@@ -20,12 +20,12 @@ namespace cine2 {
     clp_required(scenes);
     clp_required(t_scenes);
 
-    clp_required(v_popsize);
+    //clp_required(v_popsize);
     clp_required(dims);
     clp_required(resource_min);
     clp_required(resource_max);
-    clp_required(v_act);
     clp_required(functional_response);
+    //clp_required(v_act);
 
 
     clp_optional_val(a, 0.0007);
@@ -90,17 +90,15 @@ namespace cine2 {
   {
     stream(scenes);
     stream(t_scenes);
-    for (int i = 0; i < param.v_popsize.size(); ++i) {
-      stream(v_popsize[i]);
-    }
-    for (int i = 0; i < param.v_act.size(); ++i) {
-      stream(v_act[i]);
-    }
+    //stream_array(v_popsize);
+    
+    
+    
     stream(dims);
     stream(resource_min);
     stream(resource_max);
     stream(functional_response);
-
+    //stream_array(v_act);
 
 
     stream_str(outdir);

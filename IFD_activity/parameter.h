@@ -3,6 +3,8 @@
 
 #include <string>
 #include "cmd_line.h"
+#include <array>
+
 namespace cine2 {
 
   //const int dims = 20;
@@ -21,22 +23,22 @@ namespace cine2 {
     int scenes;                // time ticks per generation
     int t_scenes;                // time ticks per generation
 
-    std::vector<int> v_popsize;
+    //std::array<int, 7> v_popsize;
     int dims;
     double resource_min;
     double resource_max;
     int functional_response;
 
-    std::vector<double> v_act;
+    //std::array<double, 6> v_act;
 
-    double a = 0.0007;
-    double h = 50.0;
-    double q1 = 1000.0;
-    double q2 = 20.0;
-    double m1 = 0.27;
-    double m2 = 0.40;
-    double m3 = 0.13;
-    double r = 0.0001;
+    double a;
+    double h;
+    double q1;
+    double q2;
+    double m1;
+    double m2;
+    double m3;
+    double r;
 
 
     std::string outdir;   // output folder

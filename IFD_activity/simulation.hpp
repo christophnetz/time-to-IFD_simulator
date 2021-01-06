@@ -192,6 +192,11 @@ vector<ind> population_setup(double a, int pop_size, int dims) {
 
 void simulation(const Param& param_) {
 
+  std::vector<double> v_act = { 0.05,0.1,0.2,0.3,0.4,0.5 };
+  std::vector<int> v_popsize = { 50,200,400,1000,2000,4000,8000 };
+
+
+
 
   std::ofstream ofs1(param_.outdir + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(param_.outdir + "contin_ifd.txt", std::ofstream::out);
@@ -212,14 +217,14 @@ void simulation(const Param& param_) {
   //landscape initialization
   vector<vector<double>> landscape(param_.dims, vector<double>(param_.dims, 1.0));
 
-  for (int psize = 0; psize < param_.v_popsize.size(); ++psize) {
+  for (int psize = 0; psize < v_popsize.size(); ++psize) {
 
-    for (int iact = 0; iact < param_.v_act.size(); ++iact) {
+    for (int iact = 0; iact < v_act.size(); ++iact) {
 
       for (int scenes = 0; scenes < param_.scenes; ++scenes) {
 
 
-        vector<ind> pop = population_setup(param_.v_act[iact], param_.v_popsize[psize], param_.dims);
+        vector<ind> pop = population_setup(v_act[iact], v_popsize[psize], param_.dims);
 
         vector<double> activities;
         vector<vector<int>> presence(param_.dims, vector<int>(param_.dims, 0));
@@ -252,7 +257,7 @@ void simulation(const Param& param_) {
 
 
           if (time > it_t) {
-            ofs2 << param_.v_act[iact] << "\t" << param_.v_popsize[psize] << "\t" 
+            ofs2 << v_act[iact] << "\t" << v_popsize[psize] << "\t" 
               << scenes << "\t" << it_t << "\t" << count_IFD(pop, landscape, presence, param_)
               << "\t" << intake_variance(pop, landscape, presence, param_) << "\n";
             it_t = floor(time / increment) * increment + increment;
@@ -276,12 +281,12 @@ void simulation(const Param& param_) {
         stdev = intake_variance(pop, landscape, presence, param_);
 
 
-        ofs1 << param_.v_act[iact] << "\t" << param_.v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
+        ofs1 << v_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
 
       }
-      cout << param_.v_act[iact] << "\n";
+      cout << v_act[iact] << "\n";
     }
-    cout << param_.v_popsize[psize] << "\n";
+    cout << v_popsize[psize] << "\n";
 
   }
   ofs1.close();
