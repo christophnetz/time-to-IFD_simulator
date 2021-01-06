@@ -169,7 +169,7 @@ vector<ind> population_setup(double a, int pop_size, int dims) {
   //uniform_real_distribution<double> a_dist(0.5 - a, 0.5 + a);
 
   vector<ind> pop;
-  auto pdist = std::uniform_int_distribution<int>(0, dims);
+  auto pdist = std::uniform_int_distribution<int>(0, dims - 1);
   for (int i = 0; i < pop_size; ++i) {
     pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), 0.5);
   }

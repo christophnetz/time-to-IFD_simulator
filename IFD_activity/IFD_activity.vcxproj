@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parameter.cpp" />
+    <ClCompile Include="rnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cmd_line.h" />
