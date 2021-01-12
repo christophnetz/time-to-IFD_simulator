@@ -17,36 +17,40 @@ using namespace std;
 
 double intake(double n, double p, Param param_) {
   double intake = 0.0;
-  switch (param_.functional_response) {
-  case 1:
-    intake = param_.a * n / p;
-    break;
-
-  case 2:
-    intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p);
-    break;
-
-  case 3:
-    intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p / (1.0 + param_.a * param_.h * n));
-    break;
-
-  case 4:
-    intake = param_.a * pow((p / param_.r), -param_.m2) * n / (1.0 + param_.a * pow((p / param_.r), -param_.m2) * param_.h * n);
-    break;
-
-  case 5:
-    intake = pow((p / param_.r), -param_.m1) * param_.a * n / (1.0 + param_.a * param_.h * n);
-    break;
-
-  case 6:
-    intake = (1.0 - param_.m3 * log(p / param_.r)) * param_.a * n / (1.0 + param_.a * param_.h * n);
-    break;
-  case 7:
-    intake = (1.0 - param_.q2 * p) * param_.a * n / (1.0 + param_.a * param_.h * n);
-    break;
-
+  if (p == 1.0 && param_.functional_response > 1) {
+    intake = param_.a * n / (1.0 + param_.a * param_.h * n);
   }
+  else {
+    switch (param_.functional_response) {
+    case 1:
+      intake = param_.a * n / p;
+      break;
 
+    case 2:
+      intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p);
+      break;
+
+    case 3:
+      intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p / (1.0 + param_.a * param_.h * n));
+      break;
+
+    case 4:
+      intake = param_.a * pow((p / param_.r), -param_.m2) * n / (1.0 + param_.a * pow((p / param_.r), -param_.m2) * param_.h * n);
+      break;
+
+    case 5:
+      intake = pow((p / param_.r), -param_.m1) * param_.a * n / (1.0 + param_.a * param_.h * n);
+      break;
+
+    case 6:
+      intake = (1.0 - param_.m3 * log(p / param_.r)) * param_.a * n / (1.0 + param_.a * param_.h * n);
+      break;
+    case 7:
+      intake = (1.0 - param_.q2 * p) * param_.a * n / (1.0 + param_.a * param_.h * n);
+      break;
+
+    }
+  }
   return max(intake, 0.0);
 }
 
