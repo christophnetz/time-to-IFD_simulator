@@ -47,7 +47,7 @@ double intake(double n, double p, Param param_) {
 
   }
 
-  return intake;
+  return max(intake, 0.0);
 }
 
 struct ind {
