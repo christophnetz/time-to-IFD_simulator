@@ -211,10 +211,7 @@ void simulation(const Param& param_) {
   //ofs2 << "G" << "\t" << "prop_ifd" << "\t" << "avg_ttifd" << "\t" << endl;
 
   std::ofstream ofs3(param_.outdir + "params.txt", std::ofstream::out);
-  ofs3 << "dims" << "\t" << param_.outdir << "\n"
-    << "run_time" << "\t" << param_.outdir << "\n"
-    << "num_scenes" << "\t" << param_.outdir << "\n";
-
+  stream_parameter(ofs3, param_, "  ", ",\n", "c(", ")");
   ofs3.close();
 
 
