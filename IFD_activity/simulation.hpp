@@ -15,8 +15,9 @@
 using namespace cine2;
 using namespace std;
 
-double intake(double n, double p, Param param_) {
-  double intake = 0.0;
+inline double intake(double n, double p, Param param_) {
+
+  /*double intake = 0.0;
   if (p == 1.0 && param_.functional_response > 1) {
     intake = param_.a * n / (1.0 + param_.a * param_.h * n);
   }
@@ -50,8 +51,10 @@ double intake(double n, double p, Param param_) {
       break;
 
     }
-  }
-  return max(intake, 0.0);
+  }*/
+  //return max(intake, 0.0);
+  return param_.a * n / p;
+
 }
 
 struct ind {
@@ -248,7 +251,7 @@ void simulation(const Param& param_) {
         double time = 0.0;
         int id;
         double it_t = 0.0;
-        double increment = 0.01;
+        double increment = 0.1;
         bool IFD_reached = false;
         double time_to_IFD = param_.t_scenes;
 
@@ -268,10 +271,9 @@ void simulation(const Param& param_) {
             id = rdist(rnd::reng);
             pop[id].move(landscape, presence, param_);
             IFD_reached = check_IFD(pop, landscape, presence, param_);
-          }
-          else {
             time_to_IFD = time;
           }
+
 
 
 

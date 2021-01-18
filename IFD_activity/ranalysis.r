@@ -1,8 +1,8 @@
 library(reshape2)
 library(ggplot2)
-setwd("C:/Users/P285100/Desktop/IFD_activity/IFD_activity")
+setwd("C:/Users/P285100/Desktop/IFD_activity/IFD_activity/Results")
 
-str1 <- "01_6-11activities"
+str1 <- "standard_runifd"
 data <- read.table(paste0(str1, ".txt"), sep="\t", header = F)
 
 df <- (t(subset(data, select = -c(V1, V1002))))
@@ -67,7 +67,7 @@ plot(idf_data$G, idf_data$avg_ttifd)
 ###########
 library(ggplot2)
 
-df1 <-read.table("17-11-1ifd.txt", header=T)
+df1 <-read.table("2_18-1-ifd.txt", header=T)
 #View(df1)
 
 
@@ -90,9 +90,9 @@ p <- ggplot(data = df1[df1$pop_size<2000 & df1$pop_size != 400,], aes(x = time_t
 ggsave("dist_time-to-IFD.png", p)
 
 ######
-df2 <-read.table("3-1_contin_ifd.txt", header=T)
+df2 <-read.table("2_18-1-contin_ifd.txt", header=T)
 
-View(df1)
+View(df2)
 length(df1$act)
 df2 <- df2[df2$act>0.05,]
 
@@ -109,7 +109,7 @@ df2 <- df2[df2$act>0.05,]
 
 
 
-p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 400,], aes(x = time, y = ifd_prop, color = as.factor(act)))+
+p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200,], aes(x = time, y = ifd_prop, color = as.factor(act)))+
   geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size, scales = "free")+
   ylab("Proportion IDF") + xlab("Time")+ theme(legend.position = "bottom") + 
   scale_color_discrete(name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
@@ -126,9 +126,9 @@ ggsave("Combined.png", Combined_P)
 
 ## Variance
 
-p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200,], aes(x = time, y = stddev, color = as.factor(act)))+
-  geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size)+
-  ylab("SD intake rates") + xlab("Time")+ theme(legend.position = "bottom") + 
+p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200 & df2$iter <10,], aes(x = time, y = stddev, color = as.factor(act)))+
+  geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size, scales = "free_y")+
+  ylab("SD intake rates") + xlab("Time")+xlim(0, 10)+ theme(legend.position = "bottom") + 
   scale_color_discrete(name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
 
 
