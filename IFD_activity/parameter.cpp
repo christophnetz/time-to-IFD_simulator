@@ -22,8 +22,7 @@ namespace cine2 {
     clp_required(scenes);
     clp_required(t_scenes);
 
-    param.v_popsize = { { 1000 } };
-    clp_optional_vec(v_popsize, param.v_popsize);
+    clp_required_vec(v_popsize);
     clp_required(resource_min);
     clp_required(resource_max);
     clp_required(functional_response);
@@ -31,8 +30,7 @@ namespace cine2 {
     // dynamic vector
     clp_required_vec(v_act);
     
-    param.v_dims = { {0.5} };
-    clp_optional_vec(v_dims, param.v_dims);
+    clp_required_vec(v_dims);
 
 
     clp_optional_val(a, 0.0007);
