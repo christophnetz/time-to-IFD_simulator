@@ -4,6 +4,7 @@
 #include <string>
 #include "cmd_line.h"
 #include <array>
+#include <vector>
 
 namespace cine2 {
 
@@ -23,13 +24,14 @@ namespace cine2 {
     int scenes;                // time ticks per generation
     int t_scenes;                // time ticks per generation
 
-    //std::array<int, 7> v_popsize;
+    std::array<int, 6> v_popsize;
     int dims;
     double resource_min;
     double resource_max;
     int functional_response;
 
-    //std::array<double, 6> v_act;
+    std::vector<double> v_act;
+    std::array<double, 6> v_dims;
 
     double a;
     double h;

@@ -1,6 +1,6 @@
 library(reshape2)
 library(ggplot2)
-setwd("C:/Users/P285100/Desktop/IFD_activity/IFD_activity/Results")
+setwd("C:/Users/P285100/Desktop/IFD_activity/IFD_activity")
 
 str1 <- "standard_runifd"
 data <- read.table(paste0(str1, ".txt"), sep="\t", header = F)
@@ -66,8 +66,9 @@ plot(idf_data$G, idf_data$avg_ttifd)
 
 ###########
 library(ggplot2)
-
-df1 <-read.table("2_18-1-ifd.txt", header=T)
+library(ggpubr)
+str1 <- "22_1"
+df1 <-read.table(paste0(str1, "_ifd.txt"), header=T)
 #View(df1)
 
 
@@ -87,10 +88,10 @@ p <- ggplot(data = df1[df1$pop_size<2000 & df1$pop_size != 400,], aes(x = time_t
   scale_color_discrete( name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
 
 
-ggsave("dist_time-to-IFD.png", p)
+ggsave(paste0(str1, "ttIFD.png"), p)
 
 ######
-df2 <-read.table("2_18-1-contin_ifd.txt", header=T)
+df2 <-read.table(paste0(str1, "-contin_ifd.txt"), header=T)
 
 View(df2)
 length(df1$act)
@@ -120,17 +121,21 @@ p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200,], aes(x = time,
 Combined_P <- ggarrange(p, p2, ncol = 1, common.legend = T, legend="bottom", labels = c("A", "B"))
 ggsave("twomorphs_betterlandscapeifd_contin.png", p)
 
-ggsave("Combined.png", Combined_P)
+ggsave(paste0(str1, "-combined.png"), Combined_P)
 
 
 
 ## Variance
 
-p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 200 & df2$iter <10,], aes(x = time, y = stddev, color = as.factor(act)))+
+p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 400 & df2$iter <10,], aes(x = time, y = stddev, color = as.factor(act)))+
   geom_path(aes(group = interaction(iter, act)))+facet_wrap(~pop_size, scales = "free_y")+
-  ylab("SD intake rates") + xlab("Time")+xlim(0, 10)+ theme(legend.position = "bottom") + 
+  ylab("sd intake") + xlab("Time")+xlim(0, 10)+ theme(legend.position = "bottom") + 
   scale_color_discrete(name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
 
 
+####
 
-
+p <- ggplot(data = df1,], aes(x = time_to_IFD, color = as.factor(act)))+
+  geom_density(key_glyph = draw_key_path) + facet_wrap(~pop_size, scales = "free_y") + 
+  ylab("Density") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
+  scale_color_discrete( name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
