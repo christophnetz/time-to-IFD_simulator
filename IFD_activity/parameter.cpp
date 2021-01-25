@@ -11,11 +11,13 @@ namespace cine2 {
 #define clp_required(x) (param.x = clp.required<decltype(param.x )>( #x ))
 #define clp_optional_val(x, val) (param.x = clp.optional_val( #x, val))
 #define clp_optional_vec(x, val) (clp.optional_vec( #x, val))
+#define clp_required_vec(x) ( \
+  param.x = clp.required<cmd::parse_vector<decltype(param.x)::value_type>>( #x ).res_ \
+)
 
 
   Param parse_parameter(cmd::cmd_line_parser& clp)
   {
-
     Param param;
     clp_required(scenes);
     clp_required(t_scenes);
@@ -25,8 +27,10 @@ namespace cine2 {
     clp_required(resource_min);
     clp_required(resource_max);
     clp_required(functional_response);
-    std::vector<double> v_act_def{0.5, 0.4};
-    clp_optional_vec(v_act, v_act_def);
+
+    // dynamic vector
+    clp_required_vec(v_act);
+    
     param.v_dims = { {0.5} };
     clp_optional_vec(v_dims, param.v_dims);
 
