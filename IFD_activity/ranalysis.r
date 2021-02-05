@@ -67,8 +67,8 @@ plot(idf_data$G, idf_data$avg_ttifd)
 ###########
 library(ggplot2)
 library(ggpubr)
-str1 <- "22_1"
-df1 <-read.table(paste0(str1, "_ifd.txt"), header=T)
+str1 <- "newcheck"
+df1 <-read.table(paste0(str1, "ifd.txt"), header=T)
 #View(df1)
 
 
@@ -135,7 +135,48 @@ p2 <- ggplot(data = df2[df2$pop_size<2000 & df2$pop_size != 400 & df2$iter <10,]
 
 ####
 
-p <- ggplot(data = df1,], aes(x = time_to_IFD, color = as.factor(act)))+
+p <- ggplot(data = df1, aes(x = time_to_IFD, color = as.factor(act)))+
   geom_density(key_glyph = draw_key_path) + facet_wrap(~pop_size, scales = "free_y") + 
   ylab("Density") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
   scale_color_discrete( name = "activity", labels = paste(as.character(0.5 - c(0.4, 0.3, 0.2, 0.1, 0.0)), "||", as.character(0.5+c(0.4, 0.3, 0.2, 0.1, 0.0))))
+
+###
+#DiNuzzo data
+setwd("C:/Users/user/Desktop")
+df2 <-read.table("DiNuzzo-Modeloutput.csv", header=T, sep = ",")
+
+df2 <- df2[order(df2$prop_active),]
+a <- ggplot(data = df2, aes(x = steps, color = as.factor(prop_active)))+
+  geom_density(key_glyph = draw_key_path) + facet_wrap(~pop_size, scales = "free_y")+
+  ylab("") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
+  scale_color_discrete( name = "prop. active")
+
+setwd("C:/Users/user/source/repos/IFD_activity/IFD_activity")
+str1 <- "proprun"
+df1 <-read.table(paste0(str1, "ifd.txt"), header=T)
+
+
+b <- ggplot(data = df1[df1$pop_size == c(8, 40, 1000),], aes(x = time_to_IFD, color = as.factor(prop)))+
+  geom_density(key_glyph = draw_key_path) +  facet_wrap(~pop_size, scales = "free_y")+
+  ylab("") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
+  scale_color_discrete( name = "prop. active")+scale_x_continuous(limits = c(0, 30))
+
+c <- ggplot(data = df1[df1$pop_size==4000,], aes(x = time_to_IFD, color = as.factor(act_dim)))+
+  geom_density(key_glyph = draw_key_path) + 
+  ylab("") + xlab("Time-to-IFD") + guides(colour = guide_legend(override.aes = list(size = 6)))+ theme(legend.key = element_rect(fill = NA))+
+  scale_color_discrete( name = "activity", labels = c("0.2", "0.5", "0.8", "0.8 || 0.2"))+scale_x_continuous(limits = c(0, 25))
+
+
+Combined_P <- ggarrange(a, b, c, ncol = 3, common.legend = T, legend="bottom", labels = c("A", "B", "C"))
+
+ggsave("plot1.png", b, width = 7)
+ggsave(paste0(str1, "ttIFD_comment.png"), Combined_P, width = 7)
+
+### Type2
+
+df3 <-read.table("DiNuzzo-Modeloutput2.csv", header=T, sep = ",")
+
+ggplot(data = df3[df3$steps < 2000,], aes(x = as.factor(prop_active), y = steps))+geom_boxplot()
+
+
+

@@ -25,22 +25,14 @@ namespace cine2 {
     clp_required_vec(v_popsize);
     clp_required(resource_min);
     clp_required(resource_max);
-    clp_required(functional_response);
 
     // dynamic vector
     clp_required_vec(v_act);
+    clp_required_vec(v_prop);
     
     clp_required_vec(v_dims);
 
 
-    clp_optional_val(a, 0.0007);
-    clp_optional_val(h, 50.0);
-    clp_optional_val(q1, 1000.0);
-    clp_optional_val(q2, 20.0);
-    clp_optional_val(m1, 0.27);
-    clp_optional_val(m2, 0.40);
-    clp_optional_val(m3, 0.13);
-    clp_optional_val(r, 0.0001);
 
 
 
@@ -97,13 +89,13 @@ namespace cine2 {
     stream(t_scenes);
     stream_array(v_popsize);
     stream_array(v_act);
+    stream_array(v_prop);
     stream_array(v_dims);
     
     
     //stream(dims);
     stream(resource_min);
     stream(resource_max);
-    stream(functional_response);
     //stream_array(v_act);
 
 

@@ -15,52 +15,18 @@
 using namespace cine2;
 using namespace std;
 
-inline double intake(double n, double p, Param param_) {
+inline double intake(double n, double p) {
 
-  /*double intake = 0.0;
-  if (p == 1.0 && param_.functional_response > 1) {
-    intake = param_.a * n / (1.0 + param_.a * param_.h * n);
-  }
-  else {
-    switch (param_.functional_response) {
-    case 1:
-      intake = param_.a * n / p;
-      break;
 
-    case 2:
-      intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p);
-      break;
-
-    case 3:
-      intake = param_.a * n / (1.0 + param_.a * param_.h * n + param_.q1 * p / (1.0 + param_.a * param_.h * n));
-      break;
-
-    case 4:
-      intake = param_.a * pow((p / param_.r), -param_.m2) * n / (1.0 + param_.a * pow((p / param_.r), -param_.m2) * param_.h * n);
-      break;
-
-    case 5:
-      intake = pow((p / param_.r), -param_.m1) * param_.a * n / (1.0 + param_.a * param_.h * n);
-      break;
-
-    case 6:
-      intake = (1.0 - param_.m3 * log(p / param_.r)) * param_.a * n / (1.0 + param_.a * param_.h * n);
-      break;
-    case 7:
-      intake = (1.0 - param_.q2 * p) * param_.a * n / (1.0 + param_.a * param_.h * n);
-      break;
-
-    }
-  }*/
   //return max(intake, 0.0);
-  return param_.a* n / p;
+  return n / p;
 
 }
 
 struct ind {
 
   ind() {}
-  ind(int x, int y, double a) : xpos(x), ypos(y), act(a), food(0.0) {}
+  ind(int x, int y, double a) : xpos(x), ypos(y), act(a), food(0.0), movements(0) {}
 
 
 
@@ -68,6 +34,7 @@ struct ind {
 
   double food;
   double act;
+  int movements;
   int xpos;
   int ypos;
 };
@@ -75,25 +42,36 @@ struct ind {
 void ind::move(const vector<vector<double>>& landscape, vector<vector<int>>& presence, Param param_) {
 
   //double present_intake = landscape[xpos][ypos] / static_cast<double> (presence[xpos][ypos]);
-  double present_intake = intake(landscape[xpos][ypos], static_cast<double> (presence[xpos][ypos]), param_);
+  double present_intake = intake(landscape[xpos][ypos], static_cast<double> (presence[xpos][ypos]));
   double potential_intake;
   int former_xpos = xpos;
   int former_ypos = ypos;
+  bool moved = false;
 
   for (int i = 0; i < landscape.size(); ++i) {
     for (int j = 0; j < landscape[i].size(); ++j) {
       //potential_intake = landscape[i][j] / (static_cast<double> (presence[i][j]) + 1.0);
-      potential_intake = intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0), param_);
+      potential_intake = intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0));
       if (present_intake < potential_intake) {
         present_intake = potential_intake;
         xpos = i;
         ypos = j;
+        moved = true;
+        
       }
     }
   }
 
+  if (moved) {
+    ++movements;
+    if (movements > 1)
+      cout << "Double movement!!!: " << movements << std::endl;
+  }
+
   presence[xpos][ypos] += 1;
   presence[former_xpos][former_ypos] -= 1;
+
+
 }
 
 bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence, Param param_) {
@@ -101,11 +79,11 @@ bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape
 
   for (int p = 0; p < pop.size(); ++p) {
     //double present_intake = landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]), param_);
+    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
 
     for (int i = 0; i < landscape.size(); ++i) {
       for (int j = 0; j < landscape[i].size(); ++j) {
-        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0), param_)) {
+        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0))) {
           return false;
         }
       }
@@ -123,11 +101,11 @@ double count_IFD(const vector<ind>& pop, const vector < vector<double>>& landsca
 label:
   for (; p < pop.size(); ++p) {
     //double present_intake = landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]), param_);
+    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
 
     for (int i = 0; i < landscape.size(); ++i) {
       for (int j = 0; j < landscape[i].size(); ++j) {
-        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0), param_)) {
+        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0))) {
           --count;
           ++p;
           goto label;
@@ -145,7 +123,7 @@ double intake_variance(const vector<ind>& pop, const vector < vector<double>>& l
   int p = 0;
   for (; p < pop.size(); ++p) {
     //intakes.push_back(landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
-    intakes.push_back(intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]), param_));
+    intakes.push_back(intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos])));
   }
 
   double sum = std::accumulate(intakes.begin(), intakes.end(), 0.0);
@@ -170,25 +148,19 @@ void landscape_setup(vector<vector<double>> & landscape) {
   }
 }
 
-vector<ind> population_setup(double a, int pop_size, int dims) {
+vector<ind> population_setup(double a, int pop_size, int dims, double prop) {
 
-
+  int morph1 = pop_size * prop;
   //uniform_real_distribution<double> a_dist(0.5 - a, 0.5 + a);
 
   vector<ind> pop;
   auto pdist = std::uniform_int_distribution<int>(0, dims - 1);
-  for (int i = 0; i < pop_size; ++i) {
-    pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), 0.5);
+  for (int i = 0; i < morph1; ++i) {
+    pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), a);
   }
 
-  for (int i = 0; i < pop_size; ++i) {
-    if (i % 2) {
-      pop[i].act = a;
-    }
-    else {
-      pop[i].act = 1.0 - a;
-
-    }
+  for (int i = 0; i < pop_size - morph1; ++i) {
+    pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), (1.0-a));
   }
 
   return pop;
@@ -209,7 +181,7 @@ void simulation(const Param & param_) {
 
   std::ofstream ofs1(param_.outdir + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(param_.outdir + "contin_ifd.txt", std::ofstream::out);
-  ofs1 << "dim" << "\t" << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tstddev" << "\n";
+  ofs1 << "dim" << "\t" << "act" << "\t" << "prop" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tstddev" << "\n";
   ofs2 << "dim" << "\t" << "act" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\tstddev" << "\n";
 
   //std::ofstream ofs2("IDF2.txt", std::ofstream::out);
@@ -225,14 +197,14 @@ void simulation(const Param & param_) {
     //}
     //landscape initialization
 
-    //for (int psize = 0; psize < v_popsize.size(); ++psize) {
-    int psize = idim;
+    for (int psize = 0; psize < v_popsize.size(); ++psize) {
+      //int psize = idim;
       for (int iact = 0; iact < v_act.size(); ++iact) {
-
+        for(int iprop = 0; iprop < param_.v_prop.size(); ++iprop){
         for (int scenes = 0; scenes < param_.scenes; ++scenes) {
 
 
-          vector<ind> pop = population_setup(v_act[iact], v_popsize[psize], landscape.size());
+          vector<ind> pop = population_setup(v_act[iact], v_popsize[psize], landscape.size(), param_.v_prop[iprop]);
 
           vector<double> activities;
           vector<vector<int>> presence(landscape.size(), vector<int>(landscape.size(), 0));
@@ -291,14 +263,14 @@ void simulation(const Param & param_) {
           stdev = intake_variance(pop, landscape, presence, param_);
 
 
-          ofs1 << v_dims[idim] << "\t" << v_act[iact] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
-
+          ofs1 << v_dims[idim] << "\t" << v_act[iact] << "\t" << param_.v_prop[iprop] << "\t" << v_popsize[psize] << "\t" << scenes << "\t" << time_to_IFD << "\t" << ifd_prop << "\t" << stdev << "\n";
+        }
         }
         std::cout << v_act[iact] << "\n";
       }
       std::cout << v_popsize[psize] << "\n";
 
-    //}
+    }
   }
   ofs1.close();
   ofs2.close();

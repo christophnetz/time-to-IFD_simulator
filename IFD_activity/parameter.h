@@ -28,19 +28,11 @@ namespace cine2 {
     int dims;
     double resource_min;
     double resource_max;
-    int functional_response;
 
     std::vector<double> v_act;
+    std::vector<double> v_prop;
     std::vector<int> v_dims;
 
-    double a;
-    double h;
-    double q1;
-    double q2;
-    double m1;
-    double m2;
-    double m3;
-    double r;
 
 
     std::string outdir;   // output folder
