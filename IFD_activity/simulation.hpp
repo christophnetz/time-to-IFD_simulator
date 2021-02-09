@@ -26,67 +26,51 @@ inline double intake(double n, double p) {
 struct ind {
 
   ind() {}
-  ind(int x, int y, double a) : xpos(x), ypos(y), act(a), food(0.0), movements(0) {}
+  ind(int p, double a) : pos(p), act(a) {}
 
 
 
-  void move(const vector<vector<double>>& landscape, vector<vector<int>>& presence, Param param_);
+  void move(const vector<double>& landscape, vector<int>& presence, Param param_);
 
-  double food;
   double act;
-  int movements;
-  int xpos;
-  int ypos;
+  int pos;
 };
 
-void ind::move(const vector<vector<double>>& landscape, vector<vector<int>>& presence, Param param_) {
+void ind::move(const vector<double>& landscape, vector<int>& presence, Param param_) {
 
   //double present_intake = landscape[xpos][ypos] / static_cast<double> (presence[xpos][ypos]);
-  double present_intake = intake(landscape[xpos][ypos], static_cast<double> (presence[xpos][ypos]));
+  double present_intake = intake(landscape[pos], static_cast<double> (presence[pos]));
   double potential_intake;
-  int former_xpos = xpos;
-  int former_ypos = ypos;
-  bool moved = false;
+  int former_pos = pos;
 
   for (int i = 0; i < landscape.size(); ++i) {
-    for (int j = 0; j < landscape[i].size(); ++j) {
       //potential_intake = landscape[i][j] / (static_cast<double> (presence[i][j]) + 1.0);
-      potential_intake = intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0));
+      potential_intake = intake(landscape[i], (static_cast<double> (presence[i]) + 1.0));
       if (present_intake < potential_intake) {
         present_intake = potential_intake;
-        xpos = i;
-        ypos = j;
-        moved = true;
-        
+        pos = i;        
       }
-    }
+    
   }
 
-  if (moved) {
-    ++movements;
-    if (movements > 1)
-      cout << "Double movement!!!: " << movements << std::endl;
-  }
-
-  presence[xpos][ypos] += 1;
-  presence[former_xpos][former_ypos] -= 1;
+  presence[pos] += 1;
+  presence[former_pos] -= 1;
 
 
 }
 
-bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence, Param param_) {
+bool check_IFD(const vector<ind>& pop, const vector < double>& landscape, const vector<int>& presence, Param param_) {
 
 
   for (int p = 0; p < pop.size(); ++p) {
     //double present_intake = landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
+    double present_intake = intake(landscape[pop[p].pos], static_cast<double> (presence[pop[p].pos]));
 
     for (int i = 0; i < landscape.size(); ++i) {
-      for (int j = 0; j < landscape[i].size(); ++j) {
-        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0))) {
+        if (present_intake < intake(landscape[i], (static_cast<double> (presence[i]) + 1.0))) {
           return false;
         }
-      }
+      
     }
 
 
@@ -94,23 +78,21 @@ bool check_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape
   return true;
 }
 
-double count_IFD(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence, Param param_) {
+double count_IFD(const vector<ind>& pop, const vector < double>& landscape, const vector<int>& presence, Param param_) {
 
   int count = pop.size();
   int p = 0;
 label:
   for (; p < pop.size(); ++p) {
     //double present_intake = landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]);
-    double present_intake = intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
+    double present_intake = intake(landscape[pop[p].pos], static_cast<double> (presence[pop[p].pos]));
 
     for (int i = 0; i < landscape.size(); ++i) {
-      for (int j = 0; j < landscape[i].size(); ++j) {
-        if (present_intake < intake(landscape[i][j], (static_cast<double> (presence[i][j]) + 1.0))) {
+        if (present_intake < intake(landscape[i], (static_cast<double> (presence[i]) + 1.0))) {
           --count;
           ++p;
           goto label;
         }
-      }
     }
 
 
@@ -118,12 +100,12 @@ label:
   return static_cast<double>(count) / pop.size();
 }
 
-double intake_variance(const vector<ind>& pop, const vector < vector<double>>& landscape, const vector<vector<int>>& presence, Param param_) {
+double intake_variance(const vector<ind>& pop, const vector < double>& landscape, const vector<int>& presence, Param param_) {
   vector<double> intakes;
   int p = 0;
   for (; p < pop.size(); ++p) {
     //intakes.push_back(landscape[pop[p].xpos][pop[p].ypos] / static_cast<double> (presence[pop[p].xpos][pop[p].ypos]));
-    intakes.push_back(intake(landscape[pop[p].xpos][pop[p].ypos], static_cast<double> (presence[pop[p].xpos][pop[p].ypos])));
+    intakes.push_back(intake(landscape[pop[p].pos], static_cast<double> (presence[pop[p].pos])));
   }
 
   double sum = std::accumulate(intakes.begin(), intakes.end(), 0.0);
@@ -140,11 +122,9 @@ double intake_variance(const vector<ind>& pop, const vector < vector<double>>& l
 }
 
 
-void landscape_setup(vector<vector<double>> & landscape) {
+void landscape_setup(vector<double> & landscape) {
   for (int i = 0; i < landscape.size(); ++i) {
-    for (int j = 0; j < landscape[i].size(); ++j) {
-      landscape[i][j] = uniform_real_distribution<double>(0.5, 1.0)(rnd::reng);
-    }
+      landscape[i] = uniform_real_distribution<double>(0.5, 1.0)(rnd::reng);
   }
 }
 
@@ -156,11 +136,11 @@ vector<ind> population_setup(double a, int pop_size, int dims, double prop) {
   vector<ind> pop;
   auto pdist = std::uniform_int_distribution<int>(0, dims - 1);
   for (int i = 0; i < morph1; ++i) {
-    pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), a);
+    pop.emplace_back(pdist(rnd::reng), a);
   }
 
   for (int i = 0; i < pop_size - morph1; ++i) {
-    pop.emplace_back(pdist(rnd::reng), pdist(rnd::reng), (1.0-a));
+    pop.emplace_back(pdist(rnd::reng), (1.0-a));
   }
 
   return pop;
@@ -192,7 +172,7 @@ void simulation(const Param & param_) {
   ofs3.close();
 
   for (int idim = 0; idim < v_dims.size(); idim++) {
-    vector<vector<double>> landscape(v_dims[idim], vector<double>(v_dims[idim], 1.0));
+    vector<double> landscape(v_dims[idim], 1.0);
 
     //}
     //landscape initialization
@@ -207,10 +187,10 @@ void simulation(const Param & param_) {
           vector<ind> pop = population_setup(v_act[iact], v_popsize[psize], landscape.size(), param_.v_prop[iprop]);
 
           vector<double> activities;
-          vector<vector<int>> presence(landscape.size(), vector<int>(landscape.size(), 0));
+          vector<int> presence(v_dims[idim], 0);
           for (int i = 0; i < pop.size(); ++i) {
             activities.push_back(pop[i].act);
-            presence[pop[i].xpos][pop[i].ypos] += 1;
+            presence[pop[i].pos] += 1;
           }
 
           rndutils::mutable_discrete_distribution<int, rndutils::all_zero_policy_uni> rdist;
