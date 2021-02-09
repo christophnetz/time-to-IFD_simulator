@@ -146,8 +146,8 @@ void simulation(const Param & param_) {
   //Loop over parameter vectors
   std::for_each(param_.v_dims.begin(), param_.v_dims.end(), [&](const int dims) {
     std::for_each(param_.v_popsize.begin(), param_.v_popsize.end(), [&](const int popsize) {
-      std::for_each(param_.v_act.begin(), param_.v_act.end(), [&](const int act) {
-        std::for_each(param_.v_prop.begin(), param_.v_prop.end(), [&](const int prop) {
+      std::for_each(param_.v_act.begin(), param_.v_act.end(), [&](const double act) {
+        std::for_each(param_.v_prop.begin(), param_.v_prop.end(), [&](const double prop) {
 
           //Run different scenes
             for (int scenes = 0; scenes < param_.scenes; ++scenes) {
