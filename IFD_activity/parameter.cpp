@@ -93,10 +93,8 @@ namespace cine2 {
     stream_array(v_dims);
     
     
-    //stream(dims);
     stream(resource_min);
     stream(resource_max);
-    //stream_array(v_act);
 
 
     stream_str(outdir);
