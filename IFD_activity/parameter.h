@@ -19,8 +19,9 @@ namespace cine2 {
     int dims;
     double resource_min;
     double resource_max;
+    double act_a;
+    double act_b;
 
-    std::vector<double> v_act;
     std::vector<double> v_prop;
     std::vector<int> v_dims;
 
