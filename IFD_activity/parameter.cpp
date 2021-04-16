@@ -30,7 +30,7 @@ namespace cine2 {
 
     // dynamic vector
     clp_required_vec(v_prop);
-    clp_required_vec(v_dims);
+    clp_required_vec(v_cells);
 
 
 
@@ -91,7 +91,7 @@ namespace cine2 {
     stream(act_a);
     stream(act_b);
     stream_array(v_prop);
-    stream_array(v_dims);
+    stream_array(v_cells);
     
     
     stream(resource_min);

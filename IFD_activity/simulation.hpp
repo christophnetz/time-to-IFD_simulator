@@ -101,21 +101,21 @@ double intake_variance(const vector<ind>& pop, const vector < double>& landscape
 }
 
 // Create a landscape vector with random values between 0.5 and 1.0
-vector<double> landscape_setup(int size) {
-  vector<double> landscape(size);
-  for (int i = 0; i < size; ++i) {
-    landscape[i] = uniform_real_distribution<double>(0.5, 1.0)(rnd::reng);
+vector<double> landscape_setup(const int cells, const double resource_min, const double resource_max) {
+  vector<double> landscape(cells);
+  for (int i = 0; i < cells; ++i) {
+    landscape[i] = uniform_real_distribution<double>(resource_min, resource_max)(rnd::reng);
   }
   return landscape;
 }
 
 // Create a population with two morphs, in different proportions
-vector<ind> population_setup(double a, double b, int pop_size, int dims, double prop) {
+vector<ind> population_setup(double a, double b, int pop_size, int cells, double prop) {
 
   int morph1 = pop_size * prop;
 
   vector<ind> pop;
-  auto pdist = std::uniform_int_distribution<int>(0, dims - 1);
+  auto pdist = std::uniform_int_distribution<int>(0, cells - 1);
   for (int i = 0; i < morph1; ++i) {
     pop.emplace_back(pdist(rnd::reng), a);
   }
@@ -139,12 +139,12 @@ void simulation(const Param & param_) {
   //Initialize output filestreams
   std::ofstream ofs1(param_.outdir + "ifd.txt", std::ofstream::out);
   std::ofstream ofs2(param_.outdir + "contin_ifd.txt", std::ofstream::out);
-  ofs1 << "dim" << "\t" << "act_a"<< "\t" << "act_b" << "\t" << "prop" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tvar" << "\n";
-  ofs2 << "dim" << "\t" << "act_a" << "\t" << "act_b" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\tvar" << "\n";
+  ofs1 << "cells" << "\t" << "act_a"<< "\t" << "act_b" << "\t" << "prop" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time_to_IFD" << "\t" << "ifd_prop" << "\tvar" << "\n";
+  ofs2 << "cells" << "\t" << "act_a" << "\t" << "act_b" << "\t" << "pop_size" << "\t" << "iter" << "\t" << "time" << "\t" << "ifd_prop" << "\tvar" << "\n";
 
 
   //Loop over parameter vectors
-  std::for_each(param_.v_dims.begin(), param_.v_dims.end(), [&](const int dims) {
+  std::for_each(param_.v_cells.begin(), param_.v_cells.end(), [&](const int cells) {
     std::for_each(param_.v_popsize.begin(), param_.v_popsize.end(), [&](const int popsize) {
         std::for_each(param_.v_prop.begin(), param_.v_prop.end(), [&](const double prop) {
 
@@ -152,11 +152,11 @@ void simulation(const Param & param_) {
           for (int scenes = 0; scenes < param_.scenes; ++scenes) {
 
             //Population and landscape set up
-            vector<ind> pop = population_setup(param_.act_a, param_.act_b, popsize, dims, prop);
-            vector<double> landscape = landscape_setup(dims);
+            vector<ind> pop = population_setup(param_.act_a, param_.act_b, popsize, cells, prop);
+            vector<double> landscape = landscape_setup(cells, param_.resource_min, param_.resource_max);
 
             vector<double> activities;
-            vector<int> presence(dims, 0);
+            vector<int> presence(cells, 0);
             for (int i = 0; i < pop.size(); ++i) {
               activities.push_back(pop[i].act);
               presence[pop[i].pos] += 1;
@@ -184,7 +184,7 @@ void simulation(const Param & param_) {
                 IFD_reached = check_IFD(pop, landscape, presence);
                 time_to_IFD = time;
 
-                ofs2 << dims << "\t" << param_.act_a << "\t" << param_.act_b << "\t" << popsize << "\t"
+                ofs2 << cells << "\t" << param_.act_a << "\t" << param_.act_b << "\t" << popsize << "\t"
                   << scenes << "\t" << it_t << "\t" << intake_variance(pop, landscape, presence) << "\n";
 
                 it_t = floor(time / increment) * increment + increment;
@@ -194,7 +194,7 @@ void simulation(const Param & param_) {
                 break;
             }
 
-            ofs1 << dims << "\t" << param_.act_a << "\t" << param_.act_b << "\t" << prop << "\t"
+            ofs1 << cells << "\t" << param_.act_a << "\t" << param_.act_b << "\t" << prop << "\t"
               << popsize << "\t" << scenes << "\t" << time_to_IFD << "\t" << count_IFD(pop, landscape, presence)
               << "\t" << intake_variance(pop, landscape, presence) << "\n";
           }
